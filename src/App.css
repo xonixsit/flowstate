@@ -60,6 +60,35 @@ body {
   letter-spacing: -1px;
 }
 
+.stats-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 0.6rem 1rem;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.stats-btn:hover {
+  transform: scale(1.05);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.streak-count {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
 .main-content {
   display: flex;
   flex-direction: column;
@@ -98,6 +127,8 @@ body {
     padding: 1rem;
     justify-content: center;
   }
+  .header-logo { top: 1.5rem; left: 1.5rem; }
+  .stats-btn { top: 1.5rem; right: 1.5rem; padding: 0.5rem 0.8rem; }
   .card.compact-player {
     flex-direction: column;
     border-radius: 24px;

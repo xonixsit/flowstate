@@ -6,6 +6,8 @@ import { initAudio, startSession, stopSession, setMode, waveformAnalyser } from 
 import { motion } from 'framer-motion';
 import BackgroundVisuals from './components/BackgroundVisuals';
 import TimerDisplay from './components/TimerDisplay';
+import KaizenDashboard from './components/KaizenDashboard';
+import { useKaizenTracker } from './hooks/useKaizenTracker';
 
 function App() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -13,15 +15,31 @@ function App() {
   const canvasRef = useRef(null);
   const [timerMinutes, setTimerMinutes] = useState(15);
   const timerRef = useRef(null);
+  
+  // Kaizen Tracker State
+  const tracker = useKaizenTracker();
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+
+  const endCurrentSession = () => {
+    if (sessionStartTime) {
+      const elapsedMs = Date.now() - sessionStartTime;
+      const elapsedMinutes = elapsedMs / 60000;
+      tracker.addSessionTime(elapsedMinutes);
+      setSessionStartTime(null);
+    }
+  };
 
   const handleToggle = async () => {
     if (!isPlaying) {
       await initAudio();
       setMode(mode);
       startSession();
+      setSessionStartTime(Date.now());
       setIsPlaying(true);
     } else {
       stopSession();
+      endCurrentSession();
       setIsPlaying(false);
     }
   };
@@ -29,18 +47,24 @@ function App() {
   const handleModeSwitch = (newMode) => {
     if (isPlaying) {
       stopSession();
+      endCurrentSession();
       setIsPlaying(false);
       if (timerRef.current) clearTimeout(timerRef.current);
     }
     setSessionMode(newMode);
   };
 
-  // Countdown timer that automatically stops the session
   const startTimer = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
     const totalMs = timerMinutes * 60 * 1000;
     timerRef.current = setTimeout(() => {
       stopSession();
+      // Calculate elapsed using Date.now() instead of trusting setTimeout perfectly
+      if (sessionStartTime) {
+        const elapsedMs = Date.now() - sessionStartTime;
+        tracker.addSessionTime(elapsedMs / 60000);
+        setSessionStartTime(null);
+      }
       setIsPlaying(false);
     }, totalMs);
   };
@@ -101,14 +125,34 @@ function App() {
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (sessionStartTime) {
+         // Optionally log partial session on unmount
+         const elapsedMs = Date.now() - sessionStartTime;
+         tracker.addSessionTime(elapsedMs / 60000);
+      }
     };
-  }, []);
+  }, [sessionStartTime]);
 
   return (
     <div className="app-container">
       <header className="header-logo">
         <h1>FlowState</h1>
       </header>
+
+      {/* Kaizen Stats Button */}
+      <button 
+        className="stats-btn"
+        onClick={() => setIsDashboardOpen(true)}
+      >
+        <Flame size={20} color={tracker.currentStreak > 0 ? '#f59e0b' : '#a0a0c0'} />
+        {tracker.currentStreak > 0 && <span className="streak-count">{tracker.currentStreak}</span>}
+      </button>
+
+      <KaizenDashboard 
+        tracker={tracker} 
+        isOpen={isDashboardOpen} 
+        onClose={() => setIsDashboardOpen(false)} 
+      />
 
       <BackgroundVisuals mode={mode} isPlaying={isPlaying} />
 
