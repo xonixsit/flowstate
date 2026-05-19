@@ -94,10 +94,27 @@ body {
 }
 
 @media (max-width: 768px) {
+  .app-container {
+    padding: 1rem;
+    justify-content: center;
+  }
   .card.compact-player {
     flex-direction: column;
     border-radius: 24px;
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+  }
+  .player-left {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .waveform-canvas {
+    max-width: 100%;
+  }
+  .mode-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
   }
 }
 
@@ -109,10 +126,13 @@ body {
 
 .mode-selector {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.75rem;
   background: rgba(0,0,0,0.2);
-  padding: 0.4rem;
-  border-radius: 50px;
+  padding: 0.5rem;
+  border-radius: 24px;
+  width: 100%;
 }
 
 .mode-btn {
