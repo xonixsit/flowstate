@@ -1,0 +1,201 @@
+/* Meditative Dark Theme Design System */
+:root {
+  /* Color palette */
+  --primary-purple: #8a2be2;
+  --primary-pink: #ff69b4;
+  --primary-cyan: #00bfff;
+  --primary-green: #2ecc71; /* grounding detox */
+  --primary-yellow: #f59e0b; /* consciousness awaken */
+  --accent-color: var(--primary-cyan);
+  --bg-color: #0d0d1a; /* deep night sky */
+  --text-primary: #e0e0ff;
+  --text-secondary: #a0a0c0;
+  --glass-bg: transparent;
+  --glass-border: rgba(255,255,255,0.12);
+  --glass-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  --font-family: 'Inter', sans-serif;
+}
+
+/* Global reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Old CSS animations removed, React Three Fiber handles backgrounds now */
+
+.app-container {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.header-logo {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 10;
+}
+
+.header-logo h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(45deg, var(--primary-purple), var(--primary-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 2rem;
+}
+
+.card.compact-player {
+  background: transparent;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: 40px;
+  padding: 1.5rem 2.5rem;
+  width: 100%;
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.player-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .card.compact-player {
+    flex-direction: column;
+    border-radius: 24px;
+    padding: 1.5rem;
+  }
+}
+
+.card.focus.active-card { border-color: var(--primary-purple); box-shadow: 0 8px 32px rgba(138,43,226,0.2); }
+.card.break.active-card { border-color: var(--primary-pink); box-shadow: 0 8px 32px rgba(255,105,180,0.2); }
+.card.meditate.active-card { border-color: var(--primary-cyan); box-shadow: 0 8px 32px rgba(0,191,255,0.2); }
+.card.detox.active-card { border-color: var(--primary-green); box-shadow: 0 8px 32px rgba(46,204,113,0.2); }
+.card.awaken.active-card { border-color: var(--primary-yellow); box-shadow: 0 8px 32px rgba(245,158,11,0.2); }
+
+.mode-selector {
+  display: flex;
+  gap: 0.75rem;
+  background: rgba(0,0,0,0.2);
+  padding: 0.4rem;
+  border-radius: 50px;
+}
+
+.mode-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.3s, color 0.3s, transform 0.2s;
+}
+
+.mode-btn:hover {
+  transform: scale(1.05);
+}
+
+.mode-btn.focus:hover     { color: var(--primary-purple); border-bottom: 2px solid var(--primary-purple); }
+.mode-btn.break:hover     { color: var(--primary-pink); border-bottom: 2px solid var(--primary-pink); }
+.mode-btn.meditate:hover  { color: var(--primary-cyan); border-bottom: 2px solid var(--primary-cyan); }
+.mode-btn.detox:hover     { color: var(--primary-green); border-bottom: 2px solid var(--primary-green); }
+.mode-btn.awaken:hover    { color: var(--primary-yellow); border-bottom: 2px solid var(--primary-yellow); }
+
+.mode-btn.focus.active    { background: var(--primary-purple);   color: #fff; border-bottom: 2px solid transparent; }
+.mode-btn.break.active    { background: var(--primary-pink);    color: #fff; border-bottom: 2px solid transparent; }
+.mode-btn.meditate.active { background: var(--primary-cyan);    color: #fff; border-bottom: 2px solid transparent; }
+.mode-btn.detox.active    { background: var(--primary-green);   color: #fff; border-bottom: 2px solid transparent; }
+.mode-btn.awaken.active   { background: var(--primary-yellow);  color: #fff; border-bottom: 2px solid transparent; }
+
+.start-btn {
+  background: var(--accent-color);
+  color: #0f172a;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(0,191,255,0.4);
+}
+
+.start-btn.focus { background: var(--primary-purple); color: #fff; box-shadow: 0 8px 24px rgba(138,43,226,0.4); }
+.start-btn.focus:hover { box-shadow: 0 12px 30px rgba(138,43,226,0.6); transform: translateY(-3px); }
+
+.start-btn.break { background: var(--primary-pink); color: #fff; box-shadow: 0 8px 24px rgba(255,105,180,0.4); }
+.start-btn.break:hover { box-shadow: 0 12px 30px rgba(255,105,180,0.6); transform: translateY(-3px); }
+
+.start-btn.meditate { background: var(--primary-cyan); color: #000; box-shadow: 0 8px 24px rgba(0,191,255,0.4); }
+.start-btn.meditate:hover { box-shadow: 0 12px 30px rgba(0,191,255,0.6); transform: translateY(-3px); }
+
+.start-btn.detox { background: var(--primary-green); color: #fff; box-shadow: 0 8px 24px rgba(46,204,113,0.4); }
+.start-btn.detox:hover { box-shadow: 0 12px 30px rgba(46,204,113,0.6); transform: translateY(-3px); }
+
+.start-btn.awaken { background: var(--primary-yellow); color: #fff; box-shadow: 0 8px 24px rgba(245,158,11,0.4); }
+.start-btn.awaken:hover { box-shadow: 0 12px 30px rgba(245,158,11,0.6); transform: translateY(-3px); }
+
+.start-btn.stop {
+  background: var(--primary-pink);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(255,105,180,0.4);
+}
+
+.start-btn.stop:hover {
+  box-shadow: 0 12px 30px rgba(255,105,180,0.6);
+}
+
+.canvas-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  height: 50px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.canvas-container.visible { opacity: 1; }
+
+.waveform-canvas {
+  width: 100%;
+  max-width: 400px;
+  height: 50px;
+  border-radius: 8px;
+  background: transparent;
+}
