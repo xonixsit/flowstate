@@ -1,7 +1,6 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Stars, Sparkles, Float, Sphere, MeshDistortMaterial } from '@react-three/drei';
-import * as THREE from 'three';
+import { Stars, Sparkles, Float } from '@react-three/drei';
 import { getAudioIntensity } from '../audioEngine';
 
 const FocusScene = ({ isPlaying }) => {
@@ -27,7 +26,7 @@ const FocusScene = ({ isPlaying }) => {
   );
 };
 
-const BreakScene = ({ isPlaying }) => {
+const BreakScene = () => {
   const floatRef = useRef(null);
   return (
     <Float ref={floatRef} speed={1.5} rotationIntensity={1} floatIntensity={2}>
@@ -36,7 +35,7 @@ const BreakScene = ({ isPlaying }) => {
   );
 };
 
-const MeditateScene = ({ isPlaying }) => {
+const MeditateScene = () => {
   return (
     <group>
       <Stars radius={100} depth={50} count={2000} factor={4} saturation={0} fade speed={0.5} />
@@ -45,7 +44,7 @@ const MeditateScene = ({ isPlaying }) => {
   );
 };
 
-const AwakenScene = ({ isPlaying }) => {
+const AwakenScene = () => {
   return (
     <group>
       <Stars radius={100} depth={50} count={3000} factor={6} saturation={1} fade speed={1.5} />
@@ -79,7 +78,7 @@ const DetoxScene = ({ isPlaying }) => {
 export default function BackgroundVisuals({ mode, isPlaying }) {
   if (!isPlaying) {
     return (
-      <div className="bg-canvas-container" style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+      <div className="bg-canvas-container" style={{ position: 'fixed', inset: 0, zIndex: -1 }}>
         <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
            <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={0.2} />
         </Canvas>
@@ -88,7 +87,7 @@ export default function BackgroundVisuals({ mode, isPlaying }) {
   }
 
   return (
-    <div className="bg-canvas-container" style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+    <div className="bg-canvas-container" style={{ position: 'fixed', inset: 0, zIndex: -1 }}>
       <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />

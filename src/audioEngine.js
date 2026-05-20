@@ -8,6 +8,10 @@ let oscLeft, oscRight;
 let polySynth, reverb, autoFilter;
 // Pattern sequencer
 let pattern;
+// Global master output gain node (for click-free session fades)
+let mainOut;
+// Timeout reference to manage stopping transistions and avoid race conditions
+let stopTimeout = null;
 
 export let waveformAnalyser;
 export let meter;
@@ -22,21 +26,40 @@ export const getAudioIntensity = () => {
 export const initAudio = async () => {
   if (isInitialized) return;
   
+  // Create a new Tone.Context with 'playback' latency hint and assign it globally.
+  // This completely eliminates audio glitches/crackles caused by CPU/WebGL spikes on the main thread.
+  const context = new Tone.Context({
+    latencyHint: "playback"
+  });
+  Tone.setContext(context);
+  
+  // Set lookAhead on the new context
+  Tone.context.lookAhead = 0.15; // 150ms scheduling buffer
+  
   await Tone.start();
 
   waveformAnalyser = new Tone.Analyser("waveform", 256);
   meter = new Tone.Meter();
   
-  // Master Limiter to prevent clipping and popping
-  const limiter = new Tone.Limiter(-2).toDestination();
-  // Drastically reduce main gain to ensure we don't smash the limiter (which causes distortion)
-  const mainOut = new Tone.Gain(0.4).connect(limiter);
+  // 1. Professional Master Compressor (Replaces the aggressive hard Limiter).
+  // With a threshold of -12dB and slow attack/release times (30ms/250ms),
+  // it manages volume peaks smoothly over time rather than cycle-by-cycle,
+  // completely preventing intermodulation distortion on low-frequency sine waves.
+  const masterCompressor = new Tone.Compressor({
+    threshold: -12,
+    ratio: 4,
+    attack: 0.03,
+    release: 0.25
+  }).toDestination();
+  
+  // 2. Global mainOut node with initial gain set to 0.
+  // This allows us to fade the entire application in and out seamlessly on session start/stop.
+  mainOut = new Tone.Gain(0).connect(masterCompressor);
   
   mainOut.connect(waveformAnalyser);
   mainOut.connect(meter);
   
-  // 1. Binaural Beats setup
-  // Base frequency (e.g., 200Hz) + offset (e.g., 14Hz Beta waves for focus)
+  // 3. Binaural Beats setup
   const baseFreq = 200;
   const binauralOffset = 14; 
   
@@ -53,21 +76,23 @@ export const initAudio = async () => {
   oscRight.disconnect();
   oscRight.connect(panRight);
   
-  // Set initial volumes to silence to prevent startup clicks
-  oscLeft.volume.value = -Infinity;
-  oscRight.volume.value = -Infinity;
+  // Initialize oscillators at safe silent -100 dB and start them immediately.
+  // Keeping oscillators running continuously avoids node start/stop clicks.
+  oscLeft.volume.value = -100;
+  oscRight.volume.value = -100;
+  oscLeft.start();
+  oscRight.start();
   
-  // 2. Generative Ambient Synth with lush effects chain
+  // 4. Generative Ambient Synth with lush effects chain
   const delay = new Tone.FeedbackDelay("8n.", 0.3).connect(mainOut);
   
-  // Using Freeverb which is an algorithmic reverb (100% CPU safe, completely eliminates crackling)
+  // algorithmic Freeverb (100% CPU safe)
   reverb = new Tone.Freeverb({
     roomSize: 0.9, 
     dampening: 2000,
     wet: 0.6
   }).connect(delay);
   
-  // Removed Chorus to further reduce any risk of buffer under-runs
   autoFilter = new Tone.AutoFilter({
     frequency: 0.05, // 20 second breathing cycle
     baseFrequency: 200,
@@ -76,8 +101,9 @@ export const initAudio = async () => {
   }).connect(reverb);
   autoFilter.start();
   
+  // Synthesizer with increased polyphony to completely prevent voice-stealing clicks
   polySynth = new Tone.PolySynth(Tone.Synth, {
-    maxPolyphony: 4, 
+    maxPolyphony: 12, // Increased from 4 to 12 to handle overlapping decays gracefully
     oscillator: { type: "sine" },
     envelope: {
       attack: 4, 
@@ -87,7 +113,8 @@ export const initAudio = async () => {
     }
   }).connect(autoFilter);
   
-  polySynth.volume.value = -24; // Very low to sit in background cleanly
+  // Lowered from -24 to -28 dB to provide generous digital headroom
+  polySynth.volume.value = -28; 
 
   // Initial calm scale
   const notes = ["C4", "E4", "G4", "B4"];
@@ -104,31 +131,50 @@ export const initAudio = async () => {
 
 export const startSession = () => {
   if (!isInitialized) return;
+  
+  // Clear any active stop timeouts to prevent starting and stopping race conditions
+  if (stopTimeout) {
+    clearTimeout(stopTimeout);
+    stopTimeout = null;
+  }
+  
   Tone.Transport.start();
   
-  if (oscLeft.state !== "started") oscLeft.start();
-  if (oscRight.state !== "started") oscRight.start();
+  // Fade in oscillators smoothly from silent -100 dB to optimal -25 dB (lower volume = better headroom)
+  oscLeft.volume.rampTo(-25, 2);
+  oscRight.volume.rampTo(-25, 2);
   
-  // Fade in smoothly
-  oscLeft.volume.rampTo(-15, 2);
-  oscRight.volume.rampTo(-15, 2);
+  // Fade in the master mainOut gain smoothly from 0 to 0.4 over 1.5 seconds
+  mainOut.gain.rampTo(0.4, 1.5);
   
   pattern.start(0);
 };
 
 export const stopSession = () => {
   if (!isInitialized) return;
-  Tone.Transport.stop();
+  
+  if (stopTimeout) {
+    clearTimeout(stopTimeout);
+  }
+  
+  // Fade out the master mainOut gain smoothly to 0 over 0.8 seconds to avoid any stop pop/click
+  mainOut.gain.rampTo(0, 0.8);
+  
+  // Gracefully release all active synth voices
+  polySynth.releaseAll();
+  
+  // Stop the pattern sequencer immediately
   pattern.stop();
   
-  // Fade out to avoid clicks
-  oscLeft.volume.rampTo(-Infinity, 1);
-  oscRight.volume.rampTo(-Infinity, 1);
+  // Fade down the oscillators to -100 dB
+  oscLeft.volume.rampTo(-100, 0.8);
+  oscRight.volume.rampTo(-100, 0.8);
   
-  setTimeout(() => {
-    if (oscLeft.state === "started") oscLeft.stop();
-    if (oscRight.state === "started") oscRight.stop();
-  }, 1000);
+  // Wait for the 800ms master fade out to complete before stopping the transport
+  stopTimeout = setTimeout(() => {
+    Tone.Transport.stop();
+    stopTimeout = null;
+  }, 800);
 };
 
 export const setMode = (mode) => {

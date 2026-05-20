@@ -16,31 +16,21 @@
   --font-family: 'Inter', sans-serif;
 }
 
-/* Global reset */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: var(--font-family);
-  background: var(--bg-color);
-  color: var(--text-primary);
-  line-height: 1.5;
-}
+/* NOTE: Global * reset and body {} removed — Tailwind v4 preflight handles
+   these, and unlayered CSS overrides all Tailwind utility classes. */
 
 /* Old CSS animations removed, React Three Fiber handles backgrounds now */
 
 .app-container {
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 4rem 1.5rem 3rem 1.5rem; /* Spacious top/bottom padding to support scroll on low-height mobile */
+  gap: 1.5rem;
 }
 
 .header-logo {
@@ -93,9 +83,14 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between; /* Space out center gallery and bottom player */
   width: 100%;
-  max-width: 800px;
+  max-width: 460px; /* Constrain column width */
+  flex: 1;
+  min-height: calc(100vh - 11rem); /* Dynamic viewport fill */
+  margin-top: 5rem;
   margin-bottom: 2rem;
+  gap: 2.5rem;
 }
 
 .card.compact-player {
@@ -104,22 +99,48 @@ body {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--glass-border);
   border-radius: 40px;
-  padding: 1.5rem 2.5rem;
+  padding: 2.5rem 2rem;
   width: 100%;
+  max-width: 420px; /* Constrain deck width for centering */
   box-shadow: var(--glass-shadow);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-}
-
-.player-center {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1.8rem;
+  margin-top: auto; /* Dock strictly at the bottom of the flex content column */
+}
+
+.player-right-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-left: 1rem;
+}
+
+.path-header-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+}
+
+.path-mode-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.8;
+}
+
+.path-title-name {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
 }
 
 @media (max-width: 768px) {
@@ -131,9 +152,21 @@ body {
   .stats-btn { top: 1.5rem; right: 1.5rem; padding: 0.5rem 0.8rem; }
   .card.compact-player {
     flex-direction: column;
-    border-radius: 24px;
-    padding: 1.5rem 1rem;
+    border-radius: 28px;
+    padding: 2rem 1.5rem;
     gap: 1.5rem;
+    text-align: center;
+  }
+  .player-right-side {
+    align-items: center;
+    padding-left: 0;
+    width: 100%;
+  }
+  .path-header-info {
+    align-items: center;
+  }
+  .path-title-name {
+    font-size: 1.3rem;
   }
   .player-left {
     width: 100%;
@@ -154,6 +187,42 @@ body {
 .card.meditate.active-card { border-color: var(--primary-cyan); box-shadow: 0 8px 32px rgba(0,191,255,0.2); }
 .card.detox.active-card { border-color: var(--primary-green); box-shadow: 0 8px 32px rgba(46,204,113,0.2); }
 .card.awaken.active-card { border-color: var(--primary-yellow); box-shadow: 0 8px 32px rgba(245,158,11,0.2); }
+
+.mode-selec.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Immersive Center Paths Gallery Dashboard */
+.paths-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.1rem;
+  width: 100%;
+  margin: auto 0; /* Center vertically in the space between header and docked player */
+  padding: 1.2rem 0;
+}
+
+.gallery-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.gallery-card:hover {
+  box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+}
+
+.gallery-card.active {
+  animation: card-active-glow 2s infinite ease-in-out;
+}
+
+@keyframes card-active-glow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
 
 .mode-selector {
   display: flex;
@@ -249,4 +318,40 @@ body {
   height: 50px;
   border-radius: 8px;
   background: transparent;
+}
+
+
+
+/* Custom premium slider styles for CreatePathModal range input */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255,255,255,0.08);
+  height: 6px;
+  border-radius: 5px;
+  outline: none;
+  margin: 0.5rem 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #00bfff;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  transition: transform 0.1s ease, background 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
 }
